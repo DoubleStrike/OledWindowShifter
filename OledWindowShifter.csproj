@@ -16,6 +16,16 @@
 		<AdditionalFiles Include="NativeMethods.txt" />
 	</ItemGroup>
 
+	<PropertyGroup>
+		<ApplicationIcon>Assets\tray.ico</ApplicationIcon>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Update="Assets\tray.ico">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
 	<ItemGroup>
 		<Using Remove="System.Windows.Forms" />
 		<Using Remove="System.Drawing" />
@@ -26,11 +36,6 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-	</ItemGroup>
-
-	<ItemGroup>
-		<Folder Include="Assets\" />
-		<Folder Include="UI\" />
 	</ItemGroup>
 
 </Project>
