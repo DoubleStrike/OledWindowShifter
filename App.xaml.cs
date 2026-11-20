@@ -46,6 +46,7 @@ public partial class App : Application {
             pauseItem.Text = _scheduler.IsPaused ? "Resume Shifting" : "Pause Shifting";
         };
 
+        menu.Items.Add("Shift Now", null, (_, _) => _ = _scheduler?.ShiftNowAsync());
         menu.Items.Add(pauseItem);
         menu.Items.Add("Settings...", null, (_, _) => OpenSettings());
         menu.Items.Add(new Forms.ToolStripSeparator());

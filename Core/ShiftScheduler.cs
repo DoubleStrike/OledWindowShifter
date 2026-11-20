@@ -13,6 +13,8 @@ internal sealed class ShiftScheduler : IDisposable {
 
     public bool IsPaused { get; set; }
 
+    private readonly SemaphoreSlim _shiftLock = new(1, 1);
+
     /// <summary>
     /// Invoked before moving a window. Returns true to proceed, or false if aborted by user activity.
     /// </summary>
@@ -27,13 +29,17 @@ internal sealed class ShiftScheduler : IDisposable {
         Restart();
     }
 
+    public async Task ShiftNowAsync() {
+        var ct = _cts?.Token ?? CancellationToken.None;
+        await ShiftEligibleWindowsAsync(ct);
+    }
+
     public void Start() {
         if (_loopTask is not null) return;
 
         _cts = new CancellationTokenSource();
         _loopTask = RunLoopAsync(_cts.Token);
     }
-
     public void Stop() {
         _cts?.Cancel();
         _cts?.Dispose();
@@ -63,39 +69,42 @@ internal sealed class ShiftScheduler : IDisposable {
     }
 
     private async Task ShiftEligibleWindowsAsync(CancellationToken ct) {
-        var windows = WindowScanner.GetEligibleWindows();
+        if (!await _shiftLock.WaitAsync(0, ct))
+            return;
 
-        foreach (var target in windows) {
-            if (ct.IsCancellationRequested || IsPaused)
-                break;
+        try {
+            var windows = WindowScanner.GetEligibleWindows();
 
-            // Skip if the user's mouse is currently over this window
-            if (WindowScanner.IsCursorInsideWindow(target.Handle))
-                continue;
+            foreach (var target in windows) {
+                if (ct.IsCancellationRequested)
+                    break;
 
-            var (targetX, targetY) = WindowScanner.CalculateNextPosition(target, _settings.MaxShiftPixels);
-
-            // Show pre-move warning overlay if configured
-            if (_settings.WarningSeconds > 0 && OnRequestWarningOverlay is not null) {
-                bool proceed = await OnRequestWarningOverlay(target, _settings.WarningSeconds, ct);
-                if (!proceed)
+                if (WindowScanner.IsCursorInsideWindow(target.Handle))
                     continue;
+
+                var (targetX, targetY) = WindowScanner.CalculateNextPosition(target, _settings.MaxShiftPixels);
+
+                if (_settings.WarningSeconds > 0 && OnRequestWarningOverlay is not null) {
+                    bool proceed = await OnRequestWarningOverlay(target, _settings.WarningSeconds, ct);
+                    if (!proceed)
+                        continue;
+                }
+
+                if (WindowScanner.IsCursorInsideWindow(target.Handle))
+                    continue;
+
+                await WindowAnimator.AnimateMoveAsync(
+                    target.Handle,
+                    target.WindowRect.left,
+                    target.WindowRect.top,
+                    targetX,
+                    targetY,
+                    _settings.AnimationDurationMs,
+                    ct);
             }
-
-            // Re-verify cursor didn't enter the window right at the end of the countdown
-            if (WindowScanner.IsCursorInsideWindow(target.Handle))
-                continue;
-
-            await WindowAnimator.AnimateMoveAsync(
-                target.Handle,
-                target.WindowRect.left,
-                target.WindowRect.top,
-                targetX,
-                targetY,
-                _settings.AnimationDurationMs,
-                ct);
+        } finally {
+            _shiftLock.Release();
         }
     }
-
     public void Dispose() => Stop();
 }
