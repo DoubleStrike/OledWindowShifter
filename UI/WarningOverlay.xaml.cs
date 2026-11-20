@@ -22,6 +22,7 @@ public partial class WarningOverlay : Window {
     protected override void OnSourceInitialized(EventArgs e) {
         base.OnSourceInitialized(e);
 
+        // Make the window click-through and non-activating so it doesn't steal focus from the target window
         var hwnd = new HWND(new WindowInteropHelper(this).Handle);
         int exStyle = PInvoke.GetWindowLong(hwnd, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE);
         int clickThroughStyle = exStyle

@@ -9,12 +9,27 @@ using Windows.Win32.UI.WindowsAndMessaging;
 namespace OledWindowShifter.Core;
 
 internal static class WindowAnimator {
+    //Specifies the flags used to move a window without resizing, changing its Z-order, activating it, or waiting for
+    /// the operation.
     private const SET_WINDOW_POS_FLAGS MoveFlags =
         SET_WINDOW_POS_FLAGS.SWP_NOSIZE |
         SET_WINDOW_POS_FLAGS.SWP_NOZORDER |
         SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE |
         SET_WINDOW_POS_FLAGS.SWP_ASYNCWINDOWPOS;
 
+    /// <summary>
+    /// Moves a window smoothly from a starting position to a target position.
+    /// </summary>
+    /// <remarks>No movement occurs when the starting and target positions match. When cancellation is
+    /// requested, the operation stops before the window reaches the target position.</remarks>
+    /// <param name="hWnd">The handle of the window to move.</param>
+    /// <param name="startX">The starting horizontal screen coordinate.</param>
+    /// <param name="startY">The starting vertical screen coordinate.</param>
+    /// <param name="targetX">The target horizontal screen coordinate.</param>
+    /// <param name="targetY">The target vertical screen coordinate.</param>
+    /// <param name="durationMs">The animation duration in milliseconds.</param>
+    /// <param name="ct">A token that cancels the animation.</param>
+    /// <returns>A task that represents the asynchronous animation operation.</returns>
     public static async Task AnimateMoveAsync(
         HWND hWnd,
         int startX,
@@ -29,6 +44,7 @@ internal static class WindowAnimator {
         var sw = Stopwatch.StartNew();
 
         while (sw.ElapsedMilliseconds < durationMs) {
+            // Check for cancellation before calculating the eased position to avoid unnecessary calculations.
             if (ct.IsCancellationRequested)
                 return;
 

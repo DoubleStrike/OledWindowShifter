@@ -21,8 +21,13 @@ internal record WindowTarget(
     RECT MonitorWorkArea);
 
 internal static class WindowScanner {
+    // Random number generator for calculating random shifts
     private static readonly Random _rng = new();
 
+    /// <summary>
+    /// Enumerates the eligible windows on the current desktop.
+    /// </summary>
+    /// <returns>A list of eligible window targets.</returns>
     public static List<WindowTarget> GetEligibleWindows() {
         var results = new List<WindowTarget>();
         uint currentPid = (uint)Environment.ProcessId;
@@ -38,9 +43,20 @@ internal static class WindowScanner {
         return results;
     }
 
+    /// <summary>
+    /// Determines whether a window is eligible for window-target processing.
+    /// </summary>
+    /// <remarks>Excludes invisible, minimized, maximized, owned-process, tool, cloaked, tiny, and borderless
+    /// fullscreen windows.</remarks>
+    /// <param name="hWnd">The handle of the window to evaluate.</param>
+    /// <param name="currentPid">The process identifier to exclude.</param>
+    /// <param name="target">When this method returns, contains the window target and its window and monitor bounds if the window is
+    /// eligible.</param>
+    /// <returns><see langword="true"/> if the window is eligible; otherwise, <see langword="false"/>.</returns>
     private static unsafe bool IsEligible(HWND hWnd, uint currentPid, out WindowTarget? target) {
         target = null;
 
+        // Skip invisible, minimized, or maximized windows
         if (!PInvoke.IsWindowVisible(hWnd) || PInvoke.IsIconic(hWnd) || PInvoke.IsZoomed(hWnd))
             return false;
 
@@ -68,6 +84,7 @@ internal static class WindowScanner {
         if (!PInvoke.GetWindowRect(hWnd, out RECT windowRect))
             return false;
 
+        // Skip tiny windows (like the Windows 11 taskbar)
         int width = windowRect.right - windowRect.left;
         int height = windowRect.bottom - windowRect.top;
         if (width <= 50 || height <= 50)
@@ -99,6 +116,13 @@ internal static class WindowScanner {
         return true;
     }
 
+    /// <summary>
+    /// Calculates a randomized window position constrained to the monitor work area.
+    /// </summary>
+    /// <remarks>The randomized shift moves at least 4 pixels along at least one axis.</remarks>
+    /// <param name="target">The window and monitor information used to calculate the next position.</param>
+    /// <param name="maxShiftPixels">The maximum distance to shift the window horizontally or vertically.</param>
+    /// <returns>The clamped target X and Y coordinates.</returns>
     public static (int TargetX, int TargetY) CalculateNextPosition(WindowTarget target, int maxShiftPixels) {
         int width = target.WindowRect.right - target.WindowRect.left;
         int height = target.WindowRect.bottom - target.WindowRect.top;
@@ -125,15 +149,26 @@ internal static class WindowScanner {
         return (clampedX, clampedY);
     }
 
+    /// <summary>
+    /// Determines whether a fullscreen application or presentation mode is active.
+    /// </summary>
+    /// <returns><see langword="true"/> if a Direct3D fullscreen app, busy state, or presentation mode is active; otherwise, <see
+    /// langword="false"/>.</returns>
     public static bool IsFullscreenAppActive() {
         HRESULT hr = PInvoke.SHQueryUserNotificationState(out QUERY_USER_NOTIFICATION_STATE state);
         if (hr.Failed) return false;
 
+        // Detect fullscreen apps (like games or videos) that are running in exclusive mode, busy, or in presentation mode
         return state is QUERY_USER_NOTIFICATION_STATE.QUNS_RUNNING_D3D_FULL_SCREEN
             or QUERY_USER_NOTIFICATION_STATE.QUNS_BUSY
             or QUERY_USER_NOTIFICATION_STATE.QUNS_PRESENTATION_MODE;
     }
 
+    /// <summary>
+    /// Determines whether the cursor is within a window's screen rectangle.
+    /// </summary>
+    /// <param name="hWnd">The handle of the window to check.</param>
+    /// <returns><see langword="true"/> if the cursor is within the window rectangle; otherwise, <see langword="false"/>.</returns>
     public static bool IsCursorInsideWindow(HWND hWnd) {
         if (!PInvoke.GetCursorPos(out System.Drawing.Point pt)) return false;
         if (!PInvoke.GetWindowRect(hWnd, out RECT rect)) return false;

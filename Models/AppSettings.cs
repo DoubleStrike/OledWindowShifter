@@ -37,6 +37,13 @@ public sealed class AppSettings {
     /// </summary>
     public int AnimationDurationMs { get; set; } = 400;
 
+    /// <summary>
+    /// Loads the application settings.
+    /// </summary>
+    /// <remarks>Clamps loaded settings to valid values. Saves the default settings when loading
+    /// fails.</remarks>
+    /// <returns>The application settings loaded from disk, or default settings when the settings file is missing or cannot be
+    /// loaded.</returns>
     public static AppSettings Load() {
         try {
             if (File.Exists(SettingsFilePath)) {
@@ -56,6 +63,9 @@ public sealed class AppSettings {
         return defaults;
     }
 
+    /// <summary>
+    /// Clamps the settings, creates the settings directory if needed, and saves the settings to the settings file.
+    /// </summary>
     public void Save() {
         Clamp();
         Directory.CreateDirectory(SettingsDirectory);
@@ -63,6 +73,11 @@ public sealed class AppSettings {
         File.WriteAllText(SettingsFilePath, json);
     }
 
+    /// <summary>
+    /// Restricts the application settings to their supported minimum and maximum values.
+    /// </summary>
+    /// <remarks>Clamps the shift interval to 10–86400 seconds, the warning duration to 0–30 seconds, the
+    /// maximum shift to 4–200 pixels, and the animation duration to 0–2000 milliseconds.</remarks>
     public void Clamp() {
         ShiftIntervalSeconds = Math.Clamp(ShiftIntervalSeconds, 10, 86400);
         WarningSeconds = Math.Clamp(WarningSeconds, 0, 30);
