@@ -1,0 +1,14 @@
+EnumWindows
+IsWindowVisible
+IsIconic
+IsZoomed
+GetWindowRect
+SetWindowPos
+GetWindowLong
+SetWindowLong
+GetLastInputInfo
+GetCursorPos
+MonitorFromWindow
+GetMonitorInfo
+DwmGetWindowAttribute
+SHQueryUserNotificationState
