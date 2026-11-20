@@ -12,20 +12,23 @@
 		<ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
 	</PropertyGroup>
 
-	<ItemGroup>
-		<AdditionalFiles Include="NativeMethods.txt" />
-	</ItemGroup>
-
 	<PropertyGroup>
 		<ApplicationIcon>Assets\tray.ico</ApplicationIcon>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<DebugSymbols>false</DebugSymbols>
+		<DebugType>none</DebugType>
+	</PropertyGroup>
+	
 	<ItemGroup>
-		<None Update="Assets\tray.ico">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
+		<AdditionalFiles Include="NativeMethods.txt" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<Resource Include="Assets\tray.ico" />
+	</ItemGroup>
+	
 	<ItemGroup>
 		<Using Remove="System.Windows.Forms" />
 		<Using Remove="System.Drawing" />

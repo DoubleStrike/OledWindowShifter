@@ -62,10 +62,18 @@ public partial class App : Application {
     }
 
     private static Icon LoadTrayIcon() {
-        string iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "tray.ico");
-        return File.Exists(iconPath) ? new Icon(iconPath) : SystemIcons.Application;
-    }
+        try {
+            var uri = new Uri("pack://application:,,,/Assets/tray.ico");
+            var streamInfo = GetResourceStream(uri);
+            if (streamInfo is not null) {
+                return new Icon(streamInfo.Stream);
+            }
+        } catch {
+            // Fall back if the resource isn't present
+        }
 
+        return SystemIcons.Application;
+    }
     private void OpenSettings() {
         if (_settingsWindow is not null) {
             _settingsWindow.Activate();
