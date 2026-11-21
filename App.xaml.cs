@@ -76,7 +76,7 @@ public partial class App : Application {
     }
     private void OpenSettings() {
         if (_settingsWindow is not null) {
-            _settingsWindow.Activate();
+            _settingsWindow.BringToFront();
             return;
         }
 

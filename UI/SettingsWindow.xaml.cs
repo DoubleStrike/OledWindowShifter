@@ -2,7 +2,10 @@
 // animation speed.
 
 using System.Windows;
+using System.Windows.Interop;
 using OledWindowShifter.Models;
+using Windows.Win32;
+using Windows.Win32.Foundation;
 
 namespace OledWindowShifter.UI;
 
@@ -17,8 +20,24 @@ public partial class SettingsWindow : Window {
         WarningBox.Text = Settings.WarningSeconds.ToString();
         ShiftPixelsBox.Text = Settings.MaxShiftPixels.ToString();
         AnimDurationBox.Text = Settings.AnimationDurationMs.ToString();
-
         AllowStationaryCursorCheck.IsChecked = Settings.AllowShiftUnderStationaryCursor;
+
+        // Ensure the window is always on top of the stack when opened.
+        Loaded += (_, _) => BringToFront();
+    }
+
+    public void BringToFront() {
+        if (WindowState == WindowState.Minimized)
+            WindowState = WindowState.Normal;
+
+        // Briefly toggle Topmost to bypass Windows' background focus lock
+        Topmost = true;
+        Activate();
+        Topmost = false;
+
+        var hwnd = new HWND(new WindowInteropHelper(this).Handle);
+        PInvoke.SetForegroundWindow(hwnd);
+        Focus();
     }
 
     private void Save_Click(object sender, RoutedEventArgs e) {

@@ -14,3 +14,4 @@ DwmGetWindowAttribute
 SHQueryUserNotificationState
 GetWindowThreadProcessId
 WINDOW_EX_STYLE
+SetForegroundWindow
