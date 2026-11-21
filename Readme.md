@@ -3,6 +3,11 @@ Moves windows around to keep OLED screens happy! Yay!
 
 The goal of this project is a simple, low-overhead utility that moves windows around on a fixed schedule to ensure that windows with high-contrast elements like toolbars do not stay at the same spot and cause burn-in. Windows are moved diagonally in a random direction within the distance specified in the settings. Any maximized, full-screen (gaming), minimized, or invisible windows are skipped. Any window smaller than the shift distance is also skipped.
 
+## Tray icon
+The tray icon shows up as a move icon (4 arrows)
+
+<img width="102" height="97" alt="image" src="https://github.com/user-attachments/assets/22da19b8-4683-4405-8cf2-ec9de2b9821e" />
+
 ## Settings
 The settings are shown below and are pretty straightforward, except for the checkbox. That will allow the program to move a window even if the cursor is over the window area. If you move your cursor in the last 25% of the progress bar time, it will still abort the move, to prevent mis-clicks or drags. Currently, the default move distance is 20px, but I am strongly considering changing the default to 150px to make the move more effective for windows with large toolbar areas like browsers or MS Office apps.
 
