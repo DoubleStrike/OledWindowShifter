@@ -30,7 +30,7 @@ public sealed class AppSettings {
     /// <summary>
     /// Maximum distance (in pixels) a window can shift on each axis per move.
     /// </summary>
-    public int MaxShiftPixels { get; set; } = 20;
+    public int MaxShiftPixels { get; set; } = 150;
 
     /// <summary>
     /// Duration (in milliseconds) of the smooth slide animation.
