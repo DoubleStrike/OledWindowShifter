@@ -17,8 +17,9 @@ internal sealed class ShiftScheduler : IDisposable {
 
     /// <summary>
     /// Invoked before moving a window. Returns true to proceed, or false if aborted by user activity.
+    /// Gets or sets the handler that requests a warning overlay.
     /// </summary>
-    public Func<WindowTarget, int, CancellationToken, Task<bool>>? OnRequestWarningOverlay { get; set; }
+    public Func<WindowTarget, int, bool, CancellationToken, Task<bool>>? OnRequestWarningOverlay { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the ShiftScheduler class.
@@ -119,19 +120,25 @@ internal sealed class ShiftScheduler : IDisposable {
                 if (ct.IsCancellationRequested)
                     break;
 
-                // Skip if the cursor is inside the window, to avoid moving a window while the user is interacting with it.
-                if (WindowScanner.IsCursorInsideWindow(target.Handle))
+                // Skip if the cursor is inside the window, to avoid moving a window while the user is interacting with it,
+                // if the setting is disabled.
+                if (!_settings.AllowShiftUnderStationaryCursor && WindowScanner.IsCursorInsideWindow(target.Handle))
                     continue;
 
                 var (targetX, targetY) = WindowScanner.CalculateNextPosition(target, _settings.MaxShiftPixels);
 
                 if (_settings.WarningSeconds > 0 && OnRequestWarningOverlay is not null) {
-                    bool proceed = await OnRequestWarningOverlay(target, _settings.WarningSeconds, ct);
+                    bool proceed = await OnRequestWarningOverlay(
+                        target,
+                        _settings.WarningSeconds,
+                        _settings.AllowShiftUnderStationaryCursor,
+                        ct);
+
                     if (!proceed)
                         continue;
                 }
 
-                if (WindowScanner.IsCursorInsideWindow(target.Handle))
+                if (!_settings.AllowShiftUnderStationaryCursor && WindowScanner.IsCursorInsideWindow(target.Handle))
                     continue;
 
                 await WindowAnimator.AnimateMoveAsync(

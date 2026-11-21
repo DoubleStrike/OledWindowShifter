@@ -29,8 +29,8 @@ public partial class App : Application {
         SetupTrayIcon();
 
         _scheduler = new ShiftScheduler(_settings) {
-            OnRequestWarningOverlay = (target, seconds, ct) =>
-                Dispatcher.InvokeAsync(() => WarningOverlay.ShowCountdownAsync(target, seconds, ct)).Task.Unwrap()
+            OnRequestWarningOverlay = (target, seconds, allowStationary, ct) =>
+                Dispatcher.InvokeAsync(() => WarningOverlay.ShowCountdownAsync(target, seconds, allowStationary, ct)).Task.Unwrap()
         };
         _scheduler.Start();
     }

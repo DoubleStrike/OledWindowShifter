@@ -17,6 +17,8 @@ public partial class SettingsWindow : Window {
         WarningBox.Text = Settings.WarningSeconds.ToString();
         ShiftPixelsBox.Text = Settings.MaxShiftPixels.ToString();
         AnimDurationBox.Text = Settings.AnimationDurationMs.ToString();
+
+        AllowStationaryCursorCheck.IsChecked = Settings.AllowShiftUnderStationaryCursor;
     }
 
     private void Save_Click(object sender, RoutedEventArgs e) {
@@ -33,6 +35,7 @@ public partial class SettingsWindow : Window {
         Settings.WarningSeconds = warning;
         Settings.MaxShiftPixels = shiftPixels;
         Settings.AnimationDurationMs = animMs;
+        Settings.AllowShiftUnderStationaryCursor = AllowStationaryCursorCheck.IsChecked == true;
         Settings.Save();
 
         DialogResult = true;

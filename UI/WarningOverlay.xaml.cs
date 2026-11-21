@@ -34,13 +34,16 @@ public partial class WarningOverlay : Window {
     }
 
     /// <summary>
-    /// Shows the overlay over the target window for <paramref name="warningSeconds"/>.
-    /// Returns true if the countdown completed, or false if aborted by user activity.
+    /// Displays a countdown overlay for a window and determines whether the warning completes.
     /// </summary>
-    internal static async Task<bool> ShowCountdownAsync(
-        WindowTarget target,
-        int warningSeconds,
-        CancellationToken ct) {
+    /// <remarks>The countdown returns <see langword="false"/> if the cursor enters or moves according to the
+    /// configured stationary-cursor policy, or if cancellation is requested.</remarks>
+    /// <param name="target">The window target for which to display the countdown.</param>
+    /// <param name="warningSeconds">The duration of the countdown, in seconds.</param>
+    /// <param name="allowStationaryCursor">Whether a stationary cursor may remain inside the window during the countdown.</param>
+    /// <param name="ct">The cancellation token for the countdown.</param>
+    /// <returns><see langword="true"/> when the countdown completes; otherwise, <see langword="false"/>.</returns>
+    internal static async Task<bool> ShowCountdownAsync(WindowTarget target, int warningSeconds, bool allowStationaryCursor, CancellationToken ct) {
         var overlay = new WarningOverlay();
         overlay.Show();
 
@@ -49,6 +52,7 @@ public partial class WarningOverlay : Window {
         int width = target.VisibleBounds.right - target.VisibleBounds.left;
         int height = target.VisibleBounds.bottom - target.VisibleBounds.top;
 
+        // Set the overlay to be topmost and match the target window's visible bounds
         PInvoke.SetWindowPos(
             overlayHwnd,
             new HWND(-1), // HWND_TOPMOST
@@ -65,11 +69,39 @@ public partial class WarningOverlay : Window {
 
         var sw = Stopwatch.StartNew();
         long totalMs = warningSeconds * 1000L;
+        long lastQuarterStartMs = (long)(totalMs * 0.75);
+
+        bool startedInside = WindowScanner.IsCursorInsideWindow(target.Handle);
+        System.Drawing.Point? lastQuarterAnchor = null;
 
         try {
             while (sw.ElapsedMilliseconds < totalMs) {
-                if (ct.IsCancellationRequested || WindowScanner.IsCursorInsideWindow(target.Handle))
+                if (ct.IsCancellationRequested)
                     return false;
+
+                bool isInside = WindowScanner.IsCursorInsideWindow(target.Handle);
+
+                if (!allowStationaryCursor) {
+                    if (isInside)
+                        return false;
+                } else {
+                    // Abort if the cursor moved INTO the window
+                    if (!startedInside && isInside)
+                        return false;
+
+                    // If the cursor left the window, treat any future re-entry as moving into it
+                    if (startedInside && !isInside)
+                        startedInside = false;
+
+                    // In the last 25%, abort if the cursor moves while inside the window
+                    if (sw.ElapsedMilliseconds >= lastQuarterStartMs && WindowScanner.TryGetCursorPosition(out var currentPos)) {
+                        if (lastQuarterAnchor is null) {
+                            lastQuarterAnchor = currentPos;
+                        } else if (isInside && currentPos != lastQuarterAnchor.Value) {
+                            return false;
+                        }
+                    }
+                }
 
                 await Task.Delay(50, ct);
             }

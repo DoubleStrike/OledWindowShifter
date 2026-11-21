@@ -176,4 +176,13 @@ internal static class WindowScanner {
         return pt.X >= rect.left && pt.X <= rect.right &&
                pt.Y >= rect.top && pt.Y <= rect.bottom;
     }
+
+    /// <summary>
+    /// Attempts to retrieve the current cursor position.
+    /// </summary>
+    /// <param name="position">When this method returns, contains the cursor position in screen coordinates.</param>
+    /// <returns><see langword="true"/> if the cursor position was retrieved successfully; otherwise, <see langword="false"/>.</returns>
+    public static bool TryGetCursorPosition(out System.Drawing.Point position) {
+        return PInvoke.GetCursorPos(out position);
+    }
 }

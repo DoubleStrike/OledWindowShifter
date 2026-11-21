@@ -38,6 +38,12 @@ public sealed class AppSettings {
     public int AnimationDurationMs { get; set; } = 400;
 
     /// <summary>
+    /// Allows shifting the window currently under the cursor unless the mouse moves
+    /// during the final 25% of the warning countdown, or moves into the window.
+    /// </summary>
+    public bool AllowShiftUnderStationaryCursor { get; set; } = false;
+
+    /// <summary>
     /// Loads the application settings.
     /// </summary>
     /// <remarks>Clamps loaded settings to valid values. Saves the default settings when loading
