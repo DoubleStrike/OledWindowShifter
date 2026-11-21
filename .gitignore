@@ -48,8 +48,8 @@ _ReSharper*/
 .idea/
 
 ## Azure publish settings
-*.publishsettings
-*.pubxml
+##*.publishsettings
+##*.pubxml
 
 ## Others
 *.cache
