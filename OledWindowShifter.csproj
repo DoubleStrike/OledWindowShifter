@@ -3,6 +3,7 @@
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>net10.0-windows</TargetFramework>
+		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
 		<SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
@@ -13,6 +14,21 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
+		<Version>1.0.0</Version>
+		<FileVersion>1.0.0.0</FileVersion>
+		<AssemblyVersion>$(FileVersion)</AssemblyVersion>
+
+		<!-- Prevents .NET from appending the Git commit hash (+a1b2c3d) to Product Version -->
+		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+
+		<!-- Metadata shown in Windows File Explorer → Properties → Details -->
+		<Product>OLED Window Shifter</Product>
+		<Authors>Nikhil S. Shringarpurey</Authors>
+		<Description>Periodically shifts windows to reduce OLED burn-in.</Description>
+		<Copyright>Copyright © 2026 Nikhil S. Shringarpurey. All rights reserved.</Copyright>
+	</PropertyGroup>
+
+	<PropertyGroup>
 		<ApplicationIcon>Assets\tray.ico</ApplicationIcon>
 	</PropertyGroup>
 
@@ -20,7 +36,7 @@
 		<DebugSymbols>false</DebugSymbols>
 		<DebugType>none</DebugType>
 	</PropertyGroup>
-	
+
 	<ItemGroup>
 		<AdditionalFiles Include="NativeMethods.txt" />
 	</ItemGroup>
@@ -28,7 +44,7 @@
 	<ItemGroup>
 		<Resource Include="Assets\tray.ico" />
 	</ItemGroup>
-	
+
 	<ItemGroup>
 		<Using Remove="System.Windows.Forms" />
 		<Using Remove="System.Drawing" />
