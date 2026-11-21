@@ -163,16 +163,26 @@ internal static class WindowScanner {
     }
 
     /// <summary>
-    /// Determines whether the cursor is within a window's screen rectangle.
+    /// Determines whether the cursor is over the specified top-level window or one of its child controls.
     /// </summary>
-    /// <param name="hWnd">The handle of the window to check.</param>
-    /// <returns><see langword="true"/> if the cursor is within the window rectangle; otherwise, <see langword="false"/>.</returns>
+    /// <remarks>Returns <see langword="false"/> if the cursor position cannot be retrieved or no window is
+    /// under the cursor.</remarks>
+    /// <param name="hWnd">The handle of the top-level window to check.</param>
+    /// <returns><see langword="true"/> if the cursor is over the specified window or a child control owned by it; otherwise,
+    /// <see langword="false"/>.</returns>
     public static bool IsCursorInsideWindow(HWND hWnd) {
-        if (!PInvoke.GetCursorPos(out System.Drawing.Point pt)) return false;
-        if (!PInvoke.GetWindowRect(hWnd, out RECT rect)) return false;
+        if (!PInvoke.GetCursorPos(out System.Drawing.Point pt))
+            return false;
 
-        return pt.X >= rect.left && pt.X <= rect.right &&
-               pt.Y >= rect.top && pt.Y <= rect.bottom;
+        // Gets the topmost visible window (or child control) directly under the cursor
+        HWND hitHwnd = PInvoke.WindowFromPoint(pt);
+        if (hitHwnd.IsNull)
+            return false;
+
+        // Resolve child controls (buttons, browser panes, etc.) up to their top-level window
+        HWND rootHwnd = PInvoke.GetAncestor(hitHwnd, GET_ANCESTOR_FLAGS.GA_ROOT);
+
+        return rootHwnd == hWnd;
     }
 
     /// <summary>

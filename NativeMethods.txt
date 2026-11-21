@@ -15,3 +15,5 @@ SHQueryUserNotificationState
 GetWindowThreadProcessId
 WINDOW_EX_STYLE
 SetForegroundWindow
+WindowFromPoint
+GetAncestor
