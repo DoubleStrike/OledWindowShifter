@@ -14,8 +14,8 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<Version>1.1.5</Version>
-		<FileVersion>1.1.5.0</FileVersion>
+		<Version>1.2.0</Version>
+		<FileVersion>1.2.0.0</FileVersion>
 		<AssemblyVersion>$(FileVersion)</AssemblyVersion>
 
 		<!-- Prevents .NET from appending the Git commit hash (+a1b2c3d) to Product Version -->
