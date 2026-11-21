@@ -1,6 +1,4 @@
 ﻿using System.Drawing;
-using System.IO;
-using System.Threading;
 using System.Windows;
 using OledWindowShifter.Core;
 using OledWindowShifter.Models;

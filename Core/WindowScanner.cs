@@ -2,9 +2,7 @@
 // detects fullscreen apps (like games or videos), and calculates safe target coordinates clamped to each
 // monitor's work area.
 
-using System.Drawing;
 using System.Runtime.InteropServices;
-using System.Windows;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Dwm;
