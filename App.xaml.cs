@@ -42,6 +42,7 @@ public partial class App : Application {
             if (_scheduler is null) return;
             _scheduler.IsPaused = !_scheduler.IsPaused;
             pauseItem.Text = _scheduler.IsPaused ? "Resume Shifting" : "Pause Shifting";
+            UpdateTrayTooltip();
         };
 
         menu.Items.Add("Shift Now", null, (_, _) => _ = _scheduler?.ShiftNowAsync());
@@ -56,7 +57,9 @@ public partial class App : Application {
             ContextMenuStrip = menu,
             Visible = true
         };
+
         _trayIcon.DoubleClick += (_, _) => OpenSettings();
+        _trayIcon.MouseMove += (_, _) => UpdateTrayTooltip();
     }
 
     private static Icon LoadTrayIcon() {
@@ -98,5 +101,26 @@ public partial class App : Application {
         _singleInstanceMutex?.ReleaseMutex();
         _singleInstanceMutex?.Dispose();
         base.OnExit(e);
+    }
+
+    private void UpdateTrayTooltip() {
+        if (_trayIcon is null || _scheduler is null)
+            return;
+
+        string text;
+        if (_scheduler.IsShifting) {
+            text = "OLED Window Shifter\nShifting windows...";
+        } else if (_scheduler.IsPaused) {
+            text = "OLED Window Shifter\nPaused";
+        } else if (_scheduler.GetSecondsUntilNextShift() is int seconds) {
+            text = $"OLED Window Shifter\nNext shift in {seconds}s";
+        } else {
+            text = "OLED Window Shifter";
+        }
+
+        // Only call into Win32 Shell_NotifyIcon when the text actually changes
+        if (_trayIcon.Text != text) {
+            _trayIcon.Text = text;
+        }
     }
 }

@@ -12,8 +12,10 @@ internal sealed class ShiftScheduler : IDisposable {
     private Task? _loopTask;
 
     public bool IsPaused { get; set; }
+    public bool IsShifting => _shiftLock.CurrentCount == 0;
 
     private readonly SemaphoreSlim _shiftLock = new(1, 1);
+    private DateTime? _nextShiftTimeUtc;
 
     /// <summary>
     /// Invoked before moving a window. Returns true to proceed, or false if aborted by user activity.
@@ -27,6 +29,19 @@ internal sealed class ShiftScheduler : IDisposable {
     /// <param name="settings">The application settings used to configure the scheduler.</param>
     public ShiftScheduler(AppSettings settings) {
         _settings = settings;
+    }
+
+    /// <summary>
+    /// Gets the number of seconds until the next shift.
+    /// </summary>
+    /// <returns><see langword="null"/> when shifts are paused or no next shift is scheduled; otherwise, the remaining seconds
+    /// rounded up and clamped to zero.</returns>
+    public int? GetSecondsUntilNextShift() {
+        if (IsPaused || _nextShiftTimeUtc is null)
+            return null;
+
+        double remaining = (_nextShiftTimeUtc.Value - DateTime.UtcNow).TotalSeconds;
+        return Math.Max(0, (int)Math.Ceiling(remaining));
     }
 
     /// <summary>
@@ -87,10 +102,14 @@ internal sealed class ShiftScheduler : IDisposable {
     private async Task RunLoopAsync(CancellationToken ct) {
         var interval = TimeSpan.FromSeconds(Math.Max(10, _settings.ShiftIntervalSeconds));
         using var timer = new PeriodicTimer(interval);
+        _nextShiftTimeUtc = DateTime.UtcNow + interval;
 
         try {
             // The timer loop will exit when the token is canceled, which happens on Stop() or Restart().
             while (await timer.WaitForNextTickAsync(ct)) {
+                // Advance immediately to match PeriodicTimer's actual next tick
+                _nextShiftTimeUtc = DateTime.UtcNow + interval;
+
                 if (IsPaused || WindowScanner.IsFullscreenAppActive())
                     continue;
 
@@ -99,6 +118,8 @@ internal sealed class ShiftScheduler : IDisposable {
             }
         } catch (OperationCanceledException) {
             // Normal shutdown or settings restart
+        } finally {
+            _nextShiftTimeUtc = null;
         }
     }
 
