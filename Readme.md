@@ -24,7 +24,7 @@ As shown below, an overlay appears above any window about to move. A progress ba
 ```
 OledWindowShifter/
 ├── NativeMethods.txt               # Used for WPF code to call native Win32 functions
-├── App.xaml / App.xaml.cs          # Single-instance guard + tray lifecycle
+├── App.xaml / App.xaml.cs          # Single-instance guard + tray icon
 ├── Core/
 │   ├── WindowScanner.cs            # EnumWindows + filtering + monitor bounds
 │   ├── WindowAnimator.cs           # Eased SetWindowPos loop
@@ -33,7 +33,7 @@ OledWindowShifter/
 │   └── AppSettings.cs              # The data model for application settings
 ├── UI/
 │   ├── WarningOverlay.xaml         # Click-through border/countdown window
-│   └── SettingsWindow.xaml         # Configuration UI (replaces default MainWindow)
+│   └── SettingsWindow.xaml         # Configuration UI
 └── Assets/
     └── tray.ico                    # System tray icon
 ```
